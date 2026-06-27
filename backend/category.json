@@ -1,0 +1,51 @@
+[
+  {
+    "name": "Men",
+    "subcategory": [
+      "T-Shirts",
+      "Shirts",
+      "Jeans",
+      "Trousers",
+      "Suits",
+      "Activewear"
+    ],
+    "image": "https://images.unsplash.com/photo-1617137968427-85924c800a22?w=500&auto=format&fit=crop",
+    "productId": { "$oid": "6a060411c59b13e7bef47ab4" }
+  },
+  {
+    "name": "Women",
+    "subcategory": [
+      "Dresses",
+      "Tops",
+      "Ethnic Wear",
+      "Western Wear",
+      "Activewear"
+    ],
+    "image": "https://images.unsplash.com/photo-1618244972963-dbad0c4abf18?w=500&auto=format&fit=crop",
+    "productId": { "$oid": "6a06069083294f8e30829803" }
+  },
+  {
+    "name": "Kids",
+    "subcategory": [
+      "Boys Clothing",
+      "Girls Clothing",
+      "Infants",
+      "Toys",
+      "School Essentials"
+    ],
+    "image": "https://images.unsplash.com/photo-1622290291468-a28f7a7dc6a8?w=500&auto=format&fit=crop",
+    "productId": { "$oid": "6a0606b883294f8e30829804" }
+  },
+  {
+    "name": "Beauty",
+    "subcategory": [
+      "Makeup",
+      "Skincare",
+      "Haircare",
+      "Fragrances",
+      "Personal Care"
+    ],
+    "image": "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=500&auto=format&fit=crop",
+    "productId": { "$oid": "6a0606c783294f8e30829805" }
+  }
+]
