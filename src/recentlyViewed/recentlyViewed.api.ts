@@ -1,39 +1,84 @@
 import { RecentlyViewedItem } from './recentlyViewed.types';
 
 export type UpsertRecentPayload = {
+  userId: string;
   productId: string;
   viewedAt: number;
 };
 
 export type MergeRecentPayload = {
+  userId: string;
   items: RecentlyViewedItem[];
 };
 
-// NOTE:
-// Replace endpoint URLs and response parsing based on your backend contract.
-// This layer keeps all network logic isolated from UI/business logic.
+const API_BASE_URL = 'http://localhost:5000';
+
+type RecentlyViewedResponse = {
+  items: Array<{
+    productId: string;
+    viewedAt: string | number;
+  }>;
+};
+
+function toClientItems(data: RecentlyViewedResponse): RecentlyViewedItem[] {
+  return (data.items || []).map(item => ({
+    productId: String(item.productId),
+    viewedAt: new Date(item.viewedAt).getTime(),
+    source: 'server',
+  }));
+}
+
 export const recentlyViewedApi = {
-  fetchServerRecentlyViewed: async (): Promise<RecentlyViewedItem[]> => {
-    // Example only; wire your actual endpoint.
-    // const response = await fetch('/api/recently-viewed', { method: 'GET' });
-    // const json = await response.json();
-    // return json.items;
-    return [];
+  fetchServerRecentlyViewed: async (userId: string): Promise<RecentlyViewedItem[]> => {
+    const response = await fetch(`${API_BASE_URL}/recently-viewed/${userId}`, {
+      method: 'GET',
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch server recently viewed');
+    }
+
+    const json = (await response.json()) as RecentlyViewedResponse;
+    return toClientItems(json);
   },
 
-  upsertServerRecentView: async (_payload: UpsertRecentPayload): Promise<void> => {
-    // Example only; wire your actual endpoint.
-    // await fetch('/api/recently-viewed', { method: 'POST', body: JSON.stringify(_payload) });
+  upsertServerRecentView: async (payload: UpsertRecentPayload): Promise<RecentlyViewedItem[]> => {
+    const response = await fetch(`${API_BASE_URL}/recently-viewed/view`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to upsert recent view');
+    }
+
+    const json = (await response.json()) as RecentlyViewedResponse;
+    return toClientItems(json);
   },
 
-  mergeServerRecentlyViewed: async (_payload: MergeRecentPayload): Promise<RecentlyViewedItem[]> => {
-    // Example only; wire your actual endpoint.
-    // const response = await fetch('/api/recently-viewed/merge', {
-    //   method: 'POST',
-    //   body: JSON.stringify(_payload),
-    // });
-    // const json = await response.json();
-    // return json.items;
-    return _payload.items;
+  mergeServerRecentlyViewed: async (payload: MergeRecentPayload): Promise<RecentlyViewedItem[]> => {
+    const response = await fetch(`${API_BASE_URL}/recently-viewed/merge`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userId: payload.userId,
+        items: payload.items.map(item => ({
+          productId: item.productId,
+          viewedAt: item.viewedAt,
+        })),
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to merge recently viewed');
+    }
+
+    const json = (await response.json()) as RecentlyViewedResponse;
+    return toClientItems(json);
   },
 };

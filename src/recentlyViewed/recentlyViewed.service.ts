@@ -32,9 +32,13 @@ export const recentlyViewedService = {
       await recentlyViewedStorage.setUser(userId, nextLocal);
 
       try {
-        await recentlyViewedApi.upsertServerRecentView({ productId, viewedAt: timestamp });
-        const serverItems = await recentlyViewedApi.fetchServerRecentlyViewed();
-        const merged = mergeRecentlyViewed(nextLocal, serverItems);
+        const serverCanonical = await recentlyViewedApi.upsertServerRecentView({
+          userId,
+          productId,
+          viewedAt: timestamp,
+        });
+
+        const merged = mergeRecentlyViewed(nextLocal, serverCanonical);
         await recentlyViewedStorage.setUser(userId, merged);
         return merged;
       } catch {
@@ -50,7 +54,7 @@ export const recentlyViewedService = {
 
   syncFromServer: async (userId: string): Promise<RecentlyViewedItem[]> => {
     const localUserItems = await recentlyViewedStorage.getUser(userId);
-    const serverItems = await recentlyViewedApi.fetchServerRecentlyViewed();
+    const serverItems = await recentlyViewedApi.fetchServerRecentlyViewed(userId);
     const merged = mergeRecentlyViewed(localUserItems, serverItems);
     await recentlyViewedStorage.setUser(userId, merged);
     return merged;
@@ -60,12 +64,14 @@ export const recentlyViewedService = {
     const anonItems = await recentlyViewedStorage.getAnonymous();
     const userItems = await recentlyViewedStorage.getUser(userId);
 
-    // Include server snapshot to handle concurrent multi-device updates.
-    const serverItems = await recentlyViewedApi.fetchServerRecentlyViewed();
+    const serverItems = await recentlyViewedApi.fetchServerRecentlyViewed(userId);
     const mergedLocal = mergeRecentlyViewed(mergeRecentlyViewed(anonItems, userItems), serverItems);
 
-    // Send merged list to backend (idempotent upsert/merge endpoint expected).
-    const mergedServer = await recentlyViewedApi.mergeServerRecentlyViewed({ items: mergedLocal });
+    const mergedServer = await recentlyViewedApi.mergeServerRecentlyViewed({
+      userId,
+      items: mergedLocal,
+    });
+
     const canonical = mergeRecentlyViewed(mergedLocal, mergedServer);
 
     await recentlyViewedStorage.setUser(userId, canonical);
